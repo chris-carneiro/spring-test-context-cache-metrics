@@ -4,20 +4,20 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.TestExecutionListener;
-@Component
-public class TestExecutionAnalyzer implements TestExecutionListener {
-    private static final Logger log = LoggerFactory.getLogger(TestExecutionAnalyzer.class);
 
-    @EventListener
-    @Async
-    public void onApplicationEvent(ContextClosedEvent event) {
+@Component
+public class GlobalTestExecutionAnalyzer implements TestExecutionListener {
+    private static final Logger log = LoggerFactory.getLogger(GlobalTestExecutionAnalyzer.class);
+
+
+    @Override
+    public void testPlanExecutionFinished(TestPlan testPlan) {
+        log.info("✅ Suite de tests terminée !");
         analyzeResults();
     }
 
@@ -48,6 +48,8 @@ public class TestExecutionAnalyzer implements TestExecutionListener {
 
         // Suggestions
         suggestOptimizations(snapshot);
+
+
     }
 
     private void suggestOptimizations(Map<CacheMissInfoKey, CacheMissInfo> snapshot) {
