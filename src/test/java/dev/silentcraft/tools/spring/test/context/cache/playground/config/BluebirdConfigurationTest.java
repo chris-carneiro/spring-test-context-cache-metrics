@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import dev.silentcraft.tools.spring.test.context.cache.CacheAwareSpringBootTest;
 import dev.silentcraft.tools.spring.test.context.cache.playground.Bluebird;
 
-@SpringBootTest(classes= BeanConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-properties = {})
+@CacheAwareSpringBootTest(classes = BeanConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 class BluebirdConfigurationTest {
 
     @Autowired
