@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -20,9 +21,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 public @interface CacheAwareSpringBootTest {
 
+    @AliasFor("properties")
+    String[] value() default {};
+
     Class<?>[] classes() default {};
 
+    @AliasFor("value")
     String[] properties() default {};
+
+    String[] args() default {};
+
+    SpringBootTest.UseMainMethod useMainMethod() default SpringBootTest.UseMainMethod.NEVER;
 
     SpringBootTest.WebEnvironment webEnvironment() default SpringBootTest.WebEnvironment.NONE;
 }
