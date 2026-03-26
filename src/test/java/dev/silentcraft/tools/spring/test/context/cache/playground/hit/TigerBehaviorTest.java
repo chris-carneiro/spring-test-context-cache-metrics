@@ -17,7 +17,7 @@ class TigerBehaviorTest {
     private Tiger tiger;
 
     @Test
-    void testBluebirdIsWellBehaved() {
+    void testTigerIsWellBehaved() {
         Assertions.assertEquals("Hello I'm a tiger!", tiger.helloYou());
     }
 }

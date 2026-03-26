@@ -1,23 +1,23 @@
 package dev.silentcraft.tools.spring.test.context.cache.playground;
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import dev.silentcraft.tools.spring.test.context.cache.CacheAwareSpringBootTest;
 
-@ActiveProfiles("home")
+@ActiveProfiles("zoo")
 @CacheAwareSpringBootTest
-class CoffeeTableBehaviorTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+class ZebraClassLevelDirtiesContextTest {
 
     @Autowired
-    private CoffeeTable coffeeTable;
+    private Zebra zebra;
 
     @Test
-    void testCoffeeTableIsWellBehaved() {
-        Assertions.assertEquals("Hello I'm a coffee table!", coffeeTable.helloYou());
+    void zebraIsWellBehaved() {
+        Assertions.assertEquals("Hello I'm a Zebra!", zebra.helloYou());
     }
-
 }
