@@ -42,10 +42,6 @@ public record CacheMissInfo(List<Entries> entries) {
         return List.copyOf(entries);
     }
 
-    public void addDetail(Entries detail) {
-        entries.add(detail);
-    }
-
     /**
      * Returns a new {@code CacheMissInfo} instance with an additional entry.
      *
