@@ -40,6 +40,11 @@ public class ContextCacheMetricsRegistry {
 
     private static final Map<CacheMissInfoKey, CacheMissInfo> CACHE_MISS_INFO_METRICS = new ConcurrentHashMap<>();
 
+    public static void clear() {
+        log.debug("[OCC] clearing misses records");
+        CACHE_MISS_INFO_METRICS.clear();
+    }
+
     /**
      * Records a new context cache miss entry for the given merged configuration.
      * <p>
