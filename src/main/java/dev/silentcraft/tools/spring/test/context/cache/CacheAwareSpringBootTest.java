@@ -47,7 +47,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Inherited
 @BootstrapWith(CacheAwareSpringBootTestBootstrapper.class)
 @ExtendWith(SpringExtension.class)
-public @interface CacheAwareSpringBootTest {
+public @interface
+CacheAwareSpringBootTest {
 
     /**
      * Alias for {@link #properties()}.

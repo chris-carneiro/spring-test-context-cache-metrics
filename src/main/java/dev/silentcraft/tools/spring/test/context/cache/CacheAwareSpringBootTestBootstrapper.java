@@ -3,6 +3,7 @@ package dev.silentcraft.tools.spring.test.context.cache;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.test.context.BootstrapContext;
 import org.springframework.test.context.CacheAwareContextLoaderDelegate;
@@ -183,6 +185,17 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
 
     protected CacheAwareSpringBootTest getWrappingAnnotation(Class<?> testClass) {
         return TestContextAnnotationUtils.findMergedAnnotation(testClass, CacheAwareSpringBootTest.class);
+    }
+
+    @Override
+    protected SpringBootTest getAnnotation(Class<?> testClass) {
+        CacheAwareSpringBootTest cacheAware = getWrappingAnnotation(testClass);
+        if (cacheAware == null) {
+            return null;
+        }
+
+        Map<String, Object> annotationAttributes = AnnotationUtils.getAnnotationAttributes(cacheAware);
+        return AnnotationUtils.synthesizeAnnotation(annotationAttributes, SpringBootTest.class, testClass);
     }
 
     private static boolean hasListeningPortDefined(SpringBootTest.WebEnvironment webEnvironment) {
