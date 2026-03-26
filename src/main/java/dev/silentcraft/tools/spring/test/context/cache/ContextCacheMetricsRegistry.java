@@ -71,7 +71,7 @@ public class ContextCacheMetricsRegistry {
      */
     public static Map<CacheMissInfoKey, CacheMissInfo> snapshot() {
         if (CACHE_MISS_INFO_METRICS.isEmpty()) {
-            log.warn("No cache miss info found - did you forget to call ContextCacheMetricsRegistry#recordEntry?");
+            log.debug("No cache miss info found - did you forget to call ContextCacheMetricsRegistry#recordEntry?");
         }
         return Map.copyOf(CACHE_MISS_INFO_METRICS);
     }
