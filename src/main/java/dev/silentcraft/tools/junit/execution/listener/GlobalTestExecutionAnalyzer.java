@@ -9,6 +9,7 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.silentcraft.tools.spring.test.context.cache.CacheAwareSpringBootTestBootstrapper;
 import dev.silentcraft.tools.spring.test.context.cache.CacheMissInfo;
 import dev.silentcraft.tools.spring.test.context.cache.CacheMissInfoKey;
 import dev.silentcraft.tools.spring.test.context.cache.ContextCacheMetricsRegistry;
@@ -37,7 +38,7 @@ import dev.silentcraft.tools.spring.test.context.cache.ContextCacheMetricsRegist
  * <h3>Design Notes</h3>
  * This implementation is intentionally internal and does not yet provide public extension points.
  * It demonstrates the potential of analyzing Spring test performance at the suite level.
-
+ *
  * <h3>Example Output</h3>
  * <pre>{@code
  * TestPlan Exceution finished!!
@@ -60,6 +61,9 @@ public class GlobalTestExecutionAnalyzer implements TestExecutionListener {
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
         log.info("TestPlan Execution finished!");
+        if (!CacheAwareSpringBootTestBootstrapper.isActivated()) {
+            return;
+        }
         analyzeResults();
     }
 
