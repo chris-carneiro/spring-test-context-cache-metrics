@@ -20,21 +20,21 @@ setup.
 
 ## Important Usage Notes and Dependencies
 
-- **Logging:**  
+- **Logging:**
   This library uses the [SLF4J API](https://www.slf4j.org/) for logging and internally bundles `logback-classic` as the
-  default logging implementation.  
+  default logging implementation.
   However, **you must explicitly specify the SLF4J logging implementation you want to use in your project** to avoid
-  conflicts and ensure compatibility.  
+  conflicts and ensure compatibility.
   This design leaves the choice of logging backend fully to the consumer without imposing `logback` at runtime.
 
 
-- **Dependency Scope:**  
-  All dependencies of this library are **meant for testing purposes only**.  
+- **Dependency Scope:**
+  All dependencies of this library are **meant for testing purposes only**.
   Therefore, you **must declare this library and its dependencies with scope `test`** in your build tool (Maven/Gradle)
   to avoid polluting your production classpath and to prevent conflicts with your application code.
 
 
-- **Spring Dependencies:**  
+- **Spring Dependencies:**
   Internally, this library depends on the following Spring modules:
     - `spring-boot-autoconfigure`
     - `spring-test`
@@ -44,20 +44,21 @@ setup.
   These dependencies are necessary to hook into Spring's test lifecycle and cache infrastructure.
 
 
-- **Spring Boot Version Compatibility:**  
+- **Spring Boot Version Compatibility:**
   This library is built and tested against **Spring Boot 3.5.3** and **does not guarantee compatibility with earlier
-  Spring Boot versions**.  
+  Spring Boot versions**.
   Importantly, this dependency is **not transitively exposed** to avoid build conflicts in your projects.
 
 
-- **JUnit Version Compatibility:**  
-  The library depends on **JUnit 5** (`junit-jupiter`) and has only been tested with JUnit 5.  
+- **JUnit Version Compatibility:**
+  The library depends on **JUnit 5** (`junit-jupiter`) and has only been tested with JUnit 5.
   Support for earlier JUnit versions (JUnit 4 or older) will be considered for future releases but is not currently
   provided.
 
 
 - **Junit Dependencies**
 - `junit-jupiter-api`
+- `junit-jupiter-params`
 - `junit-platform-commons`
 - `junit-platform-engine`
 - `junit-platform-launcher`
@@ -80,17 +81,42 @@ Add the dependency to your `pom.xml` or `build.gradle` with `test` scope:
 
 Annotate your Spring Boot test classes with `@CacheAwareSpringBootTest` instead of `@SpringBootTest`:
 
-```java 
-
+```java
 @CacheAwareSpringBootTest(classes = MyApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MyServiceIntegrationTest {
-// Your test cases
+    // Your test cases
+}
+```
+
+All attributes supported by `@SpringBootTest` are available, including `properties`, `args`, and `useMainMethod`:
+
+```java
+@CacheAwareSpringBootTest(
+    classes = MyApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "feature.flag=true",
+    args = "--spring.profiles.active=ci",
+    useMainMethod = SpringBootTest.UseMainMethod.ALWAYS
+)
+public class MyServiceIntegrationTest {
+    // Your test cases
+}
+```
+
+The annotation is `@Inherited`, so annotating an abstract base class is supported:
+
+```java
+@CacheAwareSpringBootTest
+@ActiveProfiles("integration")
+abstract class AbstractIntegrationTest {}
+
+class MyServiceTest extends AbstractIntegrationTest {
+    // inherits @CacheAwareSpringBootTest
 }
 ```
 
 No further configuration is needed. The `GlobalTestExecutionAnalyzer` will automatically run at the end of your test
-suite
-and log cache miss summaries.
+suite and log cache miss summaries.
 
 ## What it does
 
@@ -104,13 +130,44 @@ and log cache miss summaries.
 
 ## Sample output
 
-```shell 
-  TestPlan Execution finished!
- Cache Miss Analysis:
- UserServiceIntegrationTest - 4 cache misses
- OrderServiceIntegrationTest - 3 cache misses
- Most common profiles: {test=6, integration=3}
+When cache misses are detected:
+
 ```
+[OCC] Cache Miss Analysis:
+[OCC] Total test classes with cache misses: 2
+[OCC] /!\ UserServiceIntegrationTest - 4 cache misses
+[OCC] /!\ OrderServiceIntegrationTest - 3 cache misses
+[OCC] Most common profiles: {test=6, integration=3}
+```
+
+When all contexts were reused:
+
+```
+[OCC] Perfect! No cache misses detected
+```
+
+## Multi-module projects
+
+When all modules run in the same JVM (e.g. Maven Surefire with `forkCount=0`), the `GlobalTestExecutionAnalyzer`
+produces a **combined report across all modules** at the end of each module's test plan. This is by design: the
+registry is never auto-cleared between modules, so the final report reflects the full picture of cache inefficiencies
+across the entire build.
+
+If you need per-module isolation, call `ContextCacheMetricsRegistry.clear()` explicitly at the start of each module
+via a custom `TestExecutionListener` registered before this one.
+
+## Registry API and IDE re-runs
+
+`ContextCacheMetricsRegistry` exposes a public `clear()` method for callers that need explicit control over when
+the registry is reset:
+
+```java
+ContextCacheMetricsRegistry.clear();
+```
+
+**Known trade-off:** When running tests repeatedly in an IDE that reuses the JVM between runs (IntelliJ, VS Code),
+the registry accumulates data across runs. A second run will report misses from both the first and second run combined.
+Call `clear()` before the test suite starts if single-run isolation is required.
 
 ## Design considerations
 
@@ -120,7 +177,7 @@ and log cache miss summaries.
 * Static Listener Registration: Cache miss listeners are registered statically to ensure reliability during this early
   phase.
 
-* Extensibility: While custom listener registration is possible, it’s currently limited by Spring Test lifecycle
+* Extensibility: While custom listener registration is possible, it's currently limited by Spring Test lifecycle
   constraints.
 
 * Future improvements:
@@ -128,12 +185,12 @@ and log cache miss summaries.
       suggestions.
     * Warn when forkMode maven/surefire settings clashes with caching
 
-```shell 
-> To benefit from the caching mechanism, all tests must run within the same process or test suite. 
+```shell
+> To benefit from the caching mechanism, all tests must run within the same process or test suite.
 > This can be achieved by executing all tests as a group within an IDE. Similarly, when executing tests with a build
- > framework such as Ant, Maven, or Gradle, it is important to make sure that the build framework does not fork 
- > between tests. For example, if the forkMode for the Maven Surefire plug-in is set to always or pertest, the 
- > TestContext framework cannot cache application contexts between test classes, and the build process runs 
+ > framework such as Ant, Maven, or Gradle, it is important to make sure that the build framework does not fork
+ > between tests. For example, if the forkMode for the Maven Surefire plug-in is set to always or pertest, the
+ > TestContext framework cannot cache application contexts between test classes, and the build process runs
  > significantly more slowly as a result.
  ```
 
