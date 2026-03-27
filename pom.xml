@@ -27,7 +27,13 @@
         <url>https://github.com/chris-carneiro/spring-test-context-cache-metrics/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
-
+    <developers>
+        <developer>
+            <id>chris-carneiro</id>
+            <name>Chris Carneiro</name>
+            <email>chris-carneiro@users.noreply.github.com</email>
+        </developer>
+    </developers>
     <scm>
         <url>https://github.com/chris-carneiro/spring-test-context-cache-metrics</url>
         <connection>scm:git:git://github.com/chris-carneiro/spring-test-context-cache-metrics.git</connection>
@@ -129,6 +135,18 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
