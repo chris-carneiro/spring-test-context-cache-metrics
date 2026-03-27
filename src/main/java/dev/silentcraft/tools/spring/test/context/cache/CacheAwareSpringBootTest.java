@@ -27,7 +27,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * loading is required, with the added benefit of observing cache behavior.
  * <p>
  * Unless explicitly set, {@link #webEnvironment()} defaults to
- * {@link org.springframework.boot.test.context.SpringBootTest.WebEnvironment#NONE}.
+ * {@link org.springframework.boot.test.context.SpringBootTest.WebEnvironment#MOCK}, matching
+ * the default of {@link org.springframework.boot.test.context.SpringBootTest}.
  *
  * <pre>
  * &#64;CacheAwareSpringBootTest(classes = MyApplication.class, webEnvironment = WebEnvironment.MOCK)
@@ -92,6 +93,6 @@ CacheAwareSpringBootTest {
      *
      * @return the {@code WebEnvironment} mode
      */
-    SpringBootTest.WebEnvironment webEnvironment() default SpringBootTest.WebEnvironment.NONE;
+    SpringBootTest.WebEnvironment webEnvironment() default SpringBootTest.WebEnvironment.MOCK;
 }
 

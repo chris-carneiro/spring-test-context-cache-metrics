@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.test.context.BootstrapContext;
@@ -37,7 +35,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
  *   <li>Integrates a {@link DefaultContextCacheMissesListener} to log context cache misses during test execution.</li>
  *   <li>Overrides {@link #getCacheAwareContextLoaderDelegate()} to inject the custom observable cache.</li>
  *   <li>Supports configuration via {@code classes}, {@code properties}, and {@code webEnvironment} from {@link SpringBootTest}.</li>
- *   <li>Automatically includes configuration classes annotated with {@link Import} on the test class.</li>
  *   <li>Provides a safety check to avoid invalid use of {@code @WebAppConfiguration} with real servlet environments.</li>
  * </ul>
  *
@@ -108,24 +105,24 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
      * for the test.
      *
      * <p>This override extends the default behavior of {@link SpringBootTestContextBootstrapper#getClasses(Class)}
-     * by supporting additional class discovery mechanisms:</p>
+     * with the following resolution strategy:</p>
      *
      * <ul>
      *   <li>If {@link CacheAwareSpringBootTest#classes()} is explicitly set,
      *   those classes are used as the primary configuration source.</li>
-     *   <li>If the test class is annotated with {@link Import},
-     *   all referenced classes are added to the configuration set.</li>
      *   <li>If no explicit configuration classes are provided, the superclass logic is applied
      *   (e.g., auto-detection of a {@code @SpringBootConfiguration} class).</li>
      * </ul>
      *
-     * <p>This design allows annotation-based configuration to remain declarative and composable,
-     * while also respecting Spring Boot's built-in conventions.</p>
+     * <p>{@code @Import} annotations on the test class are intentionally not processed here.
+     * Spring Boot's {@code ImportsContextCustomizer} already handles them as part of the normal
+     * context loading pipeline. Adding {@code @Import} targets to the primary classes array would
+     * cause double-registration with different loading semantics, breaking beans that depend on
+     * conditional auto-configuration.</p>
      *
      * @param testClass the test class being bootstrapped
-     * @return the merged array of configuration classes to be used for the test context
+     * @return the array of configuration classes to be used for the test context
      * @see CacheAwareSpringBootTest
-     * @see Import
      */
     @Override
     protected Class<?>[] getClasses(Class<?> testClass) {
@@ -136,11 +133,6 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
 
         if (hasExplicitClasses) {
             classSet.addAll(Arrays.asList(annotation.classes()));
-        }
-
-        Import importAnnotation = AnnotatedElementUtils.findMergedAnnotation(testClass, Import.class);
-        if (importAnnotation != null) {
-            classSet.addAll(Arrays.asList(importAnnotation.value()));
         }
 
         if (!hasExplicitClasses) {

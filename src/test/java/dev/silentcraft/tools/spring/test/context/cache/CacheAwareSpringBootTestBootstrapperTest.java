@@ -1,9 +1,19 @@
 package dev.silentcraft.tools.spring.test.context.cache;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,14 +24,6 @@ import org.springframework.test.context.BootstrapContext;
 import org.springframework.test.context.CacheAwareContextLoaderDelegate;
 import org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate;
 import org.springframework.test.context.web.WebAppConfiguration;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CacheAwareSpringBootTestBootstrapperTest {
 
@@ -124,24 +126,49 @@ class CacheAwareSpringBootTestBootstrapperTest {
         assertArrayEquals(new Class<?>[]{String.class}, classes);
     }
 
+    /**
+     * {@code getClasses()} must NOT add {@code @Import} targets to the configuration classes array.
+     * Spring's {@code ImportsContextCustomizer} already handles {@code @Import} on test classes.
+     * Duplicating it here registers those beans twice — outside of Spring Boot's auto-configuration
+     * ordering — which breaks beans that depend on conditional auto-configuration (e.g. SpringDoc's
+     * {@code AbstractRequestService}) because their conditions ({@code @ConditionalOnWebApplication},
+     * etc.) may not yet be satisfied at direct-class-load time.
+     */
     @Test
-    void shouldIncludeImportedClasses() {
-        ExposedBootstrapper bootstrapper = createBootstrapper(WithImport.class);
-
-        Class<?>[] classes = bootstrapper.getClasses(WithImport.class);
-
-        assertTrue(Arrays.asList(classes).contains(Integer.class));
-    }
-
-    @Test
-    void shouldMergeExplicitClassesAndImportedClasses() {
+    void getClassesMustNotIncludeImportAnnotationTargets() {
         ExposedBootstrapper bootstrapper = createBootstrapper(WithExplicitClassesAndImport.class);
 
         List<Class<?>> classes = Arrays.asList(bootstrapper.getClasses(WithExplicitClassesAndImport.class));
 
-        assertTrue(classes.contains(String.class));
-        assertTrue(classes.contains(Integer.class));
+        assertTrue(classes.contains(String.class), "explicit classes must still be returned");
+        assertFalse(classes.contains(Integer.class),
+                "@Import targets must not appear in getClasses() — ImportsContextCustomizer handles them");
     }
+
+    /**
+     * Same contract as above but for the no-explicit-classes case, which mirrors real-world usage
+     * such as:
+     * <pre>
+     * {@code @CacheAwareSpringBootTest}
+     * {@code @Import(FaultyStorageTestConfig.class)}
+     * public class FileStorageRollbackIntegrationTest { ... }
+     * </pre>
+     * When {@code getClasses()} adds {@code FaultyStorageTestConfig} to the primary configuration
+     * array, it is also processed again by {@code ImportsContextCustomizer}. The double-registration
+     * as a primary class (rather than an import) changes context-loading semantics and can prevent
+     * the main application's component scan from registering beans such as {@code DocumentService}.
+     */
+    @Test
+    void getClassesMustNotIncludeImportAnnotationTargetsWhenNoExplicitClassesDeclared() {
+        ExposedBootstrapper bootstrapper = createBootstrapper(WithImport.class);
+
+        Class<?>[] classes = bootstrapper.getClasses(WithImport.class);
+        List<Class<?>> classList = classes != null ? Arrays.asList(classes) : List.of();
+
+        assertFalse(classList.contains(Integer.class),
+                "@Import targets must not appear in getClasses() even when no explicit classes are declared");
+    }
+
 
     // -------------------------------------------------------------------------
     // verifyConfiguration()
@@ -196,57 +223,73 @@ class CacheAwareSpringBootTestBootstrapperTest {
     // -------------------------------------------------------------------------
 
     @CacheAwareSpringBootTest
-    static class WithDefaults {}
+    static class WithDefaults {
+    }
 
     @CacheAwareSpringBootTest(args = {"--custom.arg=hello"})
-    static class WithArgs {}
+    static class WithArgs {
+    }
 
     @CacheAwareSpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
-    static class WithUseMainMethodAlways {}
+    static class WithUseMainMethodAlways {
+    }
 
     @CacheAwareSpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.WHEN_AVAILABLE)
-    static class WithUseMainMethodWhenAvailable {}
+    static class WithUseMainMethodWhenAvailable {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-    static class WithWebEnvNone {}
+    static class WithWebEnvNone {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-    static class WithWebEnvMock {}
+    static class WithWebEnvMock {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-    static class WithWebEnvRandomPort {}
+    static class WithWebEnvRandomPort {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-    static class WithWebEnvDefinedPort {}
+    static class WithWebEnvDefinedPort {
+    }
 
     @CacheAwareSpringBootTest(properties = {"key=value"})
-    static class WithProperties {}
+    static class WithProperties {
+    }
 
     @CacheAwareSpringBootTest("key=value")
-    static class WithValueAlias {}
+    static class WithValueAlias {
+    }
 
     @CacheAwareSpringBootTest(classes = {String.class})
-    static class WithExplicitClasses {}
+    static class WithExplicitClasses {
+    }
 
     @CacheAwareSpringBootTest
     @Import(Integer.class)
-    static class WithImport {}
+    static class WithImport {
+    }
 
     @CacheAwareSpringBootTest(classes = {String.class})
     @Import(Integer.class)
-    static class WithExplicitClassesAndImport {}
+    static class WithExplicitClassesAndImport {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
     @WebAppConfiguration
-    static class WithWebAppConfigAndDefinedPort {}
+    static class WithWebAppConfigAndDefinedPort {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
     @WebAppConfiguration
-    static class WithWebAppConfigAndRandomPort {}
+    static class WithWebAppConfigAndRandomPort {
+    }
 
     @CacheAwareSpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
     @WebAppConfiguration
-    static class WithWebAppConfigAndMockEnv {}
+    static class WithWebAppConfigAndMockEnv {
+    }
 
     // -------------------------------------------------------------------------
     // Test infrastructure
