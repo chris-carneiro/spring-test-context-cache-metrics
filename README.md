@@ -73,7 +73,7 @@ Add the dependency to your `pom.xml` or `build.gradle` with `test` scope:
 
 <dependency>
     <groupId>dev.silentcraft.tools</groupId>
-    <artifactId>tools-test-context-cache</artifactId>
+    <artifactId>spring-test-context-cache-metrics</artifactId>
     <version>1.0.0</version>
     <scope>test</scope>
 </dependency>
