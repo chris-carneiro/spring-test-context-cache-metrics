@@ -8,7 +8,7 @@ import org.springframework.test.context.MergedContextConfiguration;
  * Implementations of this interface can be registered via {@link ObservableContextCache#registerListener(ContextCacheMissesListener)}
  * to track context cache misses during test execution.
  *
- * <h3> Design Limitation</h3>
+ * <h2> Design Limitation</h2>
  * Spring’s {@link org.springframework.test.context.cache.ContextCache} is configured during the early
  * bootstrap phase of test initialization — before the {@link org.springframework.context.ApplicationContext}
  * is created and outside of the Spring dependency injection lifecycle.
@@ -19,7 +19,7 @@ import org.springframework.test.context.MergedContextConfiguration;
  * Only statically registered listeners (e.g., via static initialization in a {@code SpringBootTestContextBootstrapper})
  * will reliably observe all cache miss events.
  *
- * <h3>Future-Proofing</h3>
+ * <h2>Future-Proofing</h2>
  * The interface remains open for extension in anticipation of future evolutions of the Spring test lifecycle.
  *
  * @see ObservableContextCache

@@ -14,12 +14,12 @@ import org.springframework.test.context.MergedContextConfiguration;
  * The recorded data includes the test class, involved configuration classes, active profiles,
  * and the timestamp of each cache miss.
  *
- * <h3>Metrics Access</h3>
+ * <h2>Metrics Access</h2>
  * The collected metrics are stored in a static instance of {@link ContextCacheMetricsRegistry}
  * and can be accessed after the test suite via the static method:
  * {@link ContextCacheMetricsRegistry#snapshot()}.
  *
- * <h3>Example Usage</h3>
+ * <h2>Example Usage</h2>
  * <pre>{@code
  * Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
  * snapshot.forEach((key, info) -> System.out.println(info));

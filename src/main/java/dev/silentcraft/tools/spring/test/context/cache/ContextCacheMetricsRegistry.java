@@ -18,7 +18,7 @@ import org.springframework.test.context.MergedContextConfiguration;
  * {@link ContextCacheMissesListener} implementations to analyze and optimize
  * test suite performance by identifying duplicate or suboptimally configured test contexts.
  *
- * <h3>Usage Example</h3>
+ * <h2>Usage Example</h2>
  * <pre>{@code
  * ContextCacheMetricsRegistry registry = new ContextCacheMetricsRegistry();
  * registry.recordEntry(config);
@@ -27,7 +27,7 @@ import org.springframework.test.context.MergedContextConfiguration;
  * snapshot.forEach((key, info) -> System.out.println(info));
  * }</pre>
  *
- * <h3>Thread Safety</h3>
+ * <h2>Thread Safety</h2>
  * Internally uses a {@link ConcurrentHashMap}, making it safe for use in parallel test executions.
  *
  * @see ObservableContextCache

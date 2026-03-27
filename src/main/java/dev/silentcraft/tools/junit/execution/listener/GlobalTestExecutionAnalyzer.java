@@ -27,7 +27,7 @@ import dev.silentcraft.tools.spring.test.context.cache.ContextCacheMetricsRegist
  * inspecting the data recorded in the {@link ContextCacheMetricsRegistry}, typically populated during test bootstrap
  * by {@link dev.silentcraft.tools.spring.test.context.cache.DefaultContextCacheMissesListener}.
  *
- * <h3>What it reports</h3>
+ * <h2>What it reports</h2>
  * At the end of the test suite, this listener logs:
  * <ul>
  *     <li>A success message if no context cache misses were detected.</li>
@@ -35,11 +35,11 @@ import dev.silentcraft.tools.spring.test.context.cache.ContextCacheMetricsRegist
  *     <li>A list of the most frequently used Spring profiles across miss events.</li>
  * </ul>
  *
- * <h3>Design Notes</h3>
+ * <h2>Design Notes</h2>
  * This implementation is intentionally internal and does not yet provide public extension points.
  * It demonstrates the potential of analyzing Spring test performance at the suite level.
  *
- * <h3>Example Output</h3>
+ * <h2>Example Output</h2>
  * <pre>{@code
  * TestPlan Exceution finished!!
  * Cache Miss Analysis:
