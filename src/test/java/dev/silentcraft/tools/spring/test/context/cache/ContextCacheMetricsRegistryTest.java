@@ -50,7 +50,7 @@ class ContextCacheMetricsRegistryTest {
 
     @Test
     void clear_shouldEmptyRegistry() {
-        new ContextCacheMetricsRegistry().recordEntry(new FakeMergedContextConfiguration());
+        ContextCacheMetricsRegistry.recordMiss(new FakeMergedContextConfiguration());
         assertFalse(ContextCacheMetricsRegistry.snapshot().isEmpty(), "pre-condition: registry has data");
 
         ContextCacheMetricsRegistry.clear();

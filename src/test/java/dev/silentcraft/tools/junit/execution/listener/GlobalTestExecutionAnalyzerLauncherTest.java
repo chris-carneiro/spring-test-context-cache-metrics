@@ -19,8 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import dev.silentcraft.tools.spring.test.context.cache.CacheAwareSpringBootTest;
 import dev.silentcraft.tools.spring.test.context.cache.CacheAwareSpringBootTestBootstrapper;
-import dev.silentcraft.tools.spring.test.context.cache.CacheMissInfo;
-import dev.silentcraft.tools.spring.test.context.cache.CacheMissInfoKey;
+import dev.silentcraft.tools.spring.test.context.cache.TestContextHistory;
+import dev.silentcraft.tools.spring.test.context.cache.TestContextKey;
 import dev.silentcraft.tools.spring.test.context.cache.ContextCacheMetricsRegistry;
 import dev.silentcraft.tools.spring.test.context.cache.TestApplication;
 
@@ -56,7 +56,7 @@ class GlobalTestExecutionAnalyzerLauncherTest {
     void missIsRegisteredInRegistryWhenContextIsLoadedViaLauncher() {
         run(ZooMissTest.class);
 
-        Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+        Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
 
         assertTrue(
                 snapshot.keySet().stream().anyMatch(k -> k.testClass() == ZooMissTest.class),
@@ -68,7 +68,7 @@ class GlobalTestExecutionAnalyzerLauncherTest {
     void noMissIsRegisteredWhenPlainJUnitTestRunsViaLauncher() {
         run(PlainJUnitFixture.class);
 
-        Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+        Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
 
         assertTrue(snapshot.isEmpty(),
                 "Registry must remain empty when no @CacheAwareSpringBootTest runs");

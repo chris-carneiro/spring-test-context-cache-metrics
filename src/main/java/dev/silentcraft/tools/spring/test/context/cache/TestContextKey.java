@@ -8,5 +8,5 @@ package dev.silentcraft.tools.spring.test.context.cache;
  *
  * @param testClass the test class associated with the cache miss.
  */
-public record CacheMissInfoKey(Class<?> testClass) {
+public record TestContextKey(Class<?> testClass) {
 }

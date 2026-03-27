@@ -5,23 +5,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.MergedContextConfiguration;
 
 /**
- * Default implementation of {@link ContextCacheMissesListener} that records all context cache misses
- * into an internal metrics registry, {@link ContextCacheMetricsRegistry}.
+ * Default implementation of {@link ContextCacheMissesListener} that records context cache hits
+ * and misses into {@link ContextCacheMetricsRegistry}.
  * <p>
- * This implementation is automatically registered by {@link ObservableContextCache} to monitor
- * Spring's {@link org.springframework.test.context.cache.ContextCache} during test execution.
+ * This implementation is registered statically by {@link CacheAwareSpringBootTestBootstrapper}
+ * on the shared {@link ObservableContextCache}, ensuring all cache events are captured before
+ * any {@code ApplicationContext} is loaded.
  * <p>
  * The recorded data includes the test class, involved configuration classes, active profiles,
- * and the timestamp of each cache miss.
+ * and the timestamp of each event.
  *
  * <h2>Metrics Access</h2>
- * The collected metrics are stored in a static instance of {@link ContextCacheMetricsRegistry}
- * and can be accessed after the test suite via the static method:
+ * Collected metrics are accessible after the test suite via:
  * {@link ContextCacheMetricsRegistry#snapshot()}.
  *
  * <h2>Example Usage</h2>
  * <pre>{@code
- * Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+ * Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
  * snapshot.forEach((key, info) -> System.out.println(info));
  * }</pre>
  *
@@ -32,10 +32,20 @@ import org.springframework.test.context.MergedContextConfiguration;
 public class DefaultContextCacheMissesListener implements ContextCacheMissesListener {
     private static final Logger log = LoggerFactory.getLogger(DefaultContextCacheMissesListener.class);
 
-    private static final ContextCacheMetricsRegistry contextCacheMetricsRegistry = new ContextCacheMetricsRegistry();
+    /**
+     * Creates a new {@code DefaultContextCacheMissesListener}.
+     * Instantiated internally by {@link CacheAwareSpringBootTestBootstrapper}.
+     */
+    public DefaultContextCacheMissesListener() {
+    }
 
     @Override
-    public void onCacheMiss(MergedContextConfiguration config) {
-        contextCacheMetricsRegistry.recordEntry(config);
+    public void onCacheMiss(MergedContextConfiguration miss) {
+        ContextCacheMetricsRegistry.recordMiss(miss);
+    }
+
+    @Override
+    public void onCacheHit(MergedContextConfiguration hit) {
+        ContextCacheMetricsRegistry.recordHit(hit);
     }
 }
