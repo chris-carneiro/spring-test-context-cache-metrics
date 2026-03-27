@@ -72,7 +72,7 @@ Add the dependency to your `pom.xml` or `build.gradle` with `test` scope:
 ```xml
 
 <dependency>
-    <groupId>dev.silentcraft</groupId>
+    <groupId>dev.silentcraft.tools</groupId>
     <artifactId>tools-test-context-cache</artifactId>
     <version>1.0.0</version>
     <scope>test</scope>
