@@ -83,6 +83,22 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
         activated = false;
     }
 
+    /**
+     * Creates a new {@code CacheAwareSpringBootTestBootstrapper}.
+     * Instantiated by the Spring test framework via reflection through {@link org.springframework.test.context.BootstrapWith}.
+     */
+    public CacheAwareSpringBootTestBootstrapper() {
+    }
+
+    /**
+     * Returns {@code true} if this bootstrapper has been activated — i.e., at least one test class
+     * annotated with {@link CacheAwareSpringBootTest} was bootstrapped in this JVM process.
+     * <p>
+     * Used by {@link dev.silentcraft.tools.junit.execution.listener.GlobalTestExecutionAnalyzer}
+     * to guard against reporting when no {@code @CacheAwareSpringBootTest} tests were executed.
+     *
+     * @return {@code true} if the bootstrapper was invoked at least once
+     */
     public static boolean isActivated() {
         return activated;
     }
@@ -93,9 +109,18 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
         return new DefaultCacheAwareContextLoaderDelegate(OBSERVABLE_CONTEXT_CACHE);
     }
 
+    /**
+     * Sets the bootstrap context and marks this bootstrapper as activated.
+     * <p>
+     * Called by the Spring test framework once per test class during the bootstrap phase.
+     * Setting {@code activated = true} here ensures the flag is set as early as possible —
+     * before any context is loaded.
+     *
+     * @param bootstrapContext the bootstrap context provided by the framework
+     */
     @Override
     public void setBootstrapContext(BootstrapContext bootstrapContext) {
-        log.info("[OCC] Bootstrap context with ObservableCache");
+        log.debug("[OCC] Bootstrap context with ObservableCache");
         super.setBootstrapContext(bootstrapContext);
         activated = true;
     }
@@ -146,6 +171,15 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
     }
 
 
+    /**
+     * Resolves the inline property overrides for the given test class.
+     * <p>
+     * If {@link CacheAwareSpringBootTest#properties()} is present on the test class,
+     * those values are returned. Otherwise delegates to the superclass resolution.
+     *
+     * @param testClass the test class being bootstrapped
+     * @return the array of {@code key=value} property overrides, or {@code null} if none
+     */
     @Override
     protected String[] getProperties(Class<?> testClass) {
         CacheAwareSpringBootTest wrappingAnnotation = getWrappingAnnotation(testClass);
@@ -158,6 +192,17 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
         return props;
     }
 
+    /**
+     * Resolves the {@link SpringBootTest.WebEnvironment} for the given test class.
+     * <p>
+     * If {@link CacheAwareSpringBootTest#webEnvironment()} is present, that value is used.
+     * Otherwise delegates to the superclass resolution. Defaults to
+     * {@link SpringBootTest.WebEnvironment#MOCK} when not explicitly set, matching the
+     * behaviour of {@link SpringBootTest}.
+     *
+     * @param testClass the test class being bootstrapped
+     * @return the resolved web environment
+     */
     @Override
     protected SpringBootTest.WebEnvironment getWebEnvironment(Class<?> testClass) {
         CacheAwareSpringBootTest wrappingAnnotation = getWrappingAnnotation(testClass);
@@ -171,6 +216,16 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
         return webEnvironment;
     }
 
+    /**
+     * Validates the test class configuration before bootstrapping.
+     * <p>
+     * Rejects the combination of {@code @WebAppConfiguration} with a real servlet environment
+     * ({@link SpringBootTest.WebEnvironment#DEFINED_PORT} or {@link SpringBootTest.WebEnvironment#RANDOM_PORT}),
+     * as the two are mutually exclusive. Delegates all other validation to the superclass.
+     *
+     * @param testClass the test class being validated
+     * @throws IllegalStateException if an incompatible combination is detected
+     */
     @Override
     protected void verifyConfiguration(Class<?> testClass) {
         CacheAwareSpringBootTest wrappingAnnotation = getWrappingAnnotation(testClass);
@@ -185,10 +240,27 @@ public class CacheAwareSpringBootTestBootstrapper extends SpringBootTestContextB
         super.verifyConfiguration(testClass);
     }
 
+    /**
+     * Finds the {@link CacheAwareSpringBootTest} annotation on the given test class,
+     * searching through meta-annotations and inherited annotations.
+     *
+     * @param testClass the test class to inspect
+     * @return the resolved annotation, or {@code null} if not present
+     */
     protected CacheAwareSpringBootTest getWrappingAnnotation(Class<?> testClass) {
         return TestContextAnnotationUtils.findMergedAnnotation(testClass, CacheAwareSpringBootTest.class);
     }
 
+    /**
+     * Synthesizes a {@link SpringBootTest} annotation from the attributes of {@link CacheAwareSpringBootTest}.
+     * <p>
+     * Required because Spring Boot's bootstrapper internally looks for a {@code @SpringBootTest}
+     * annotation. This method bridges the two by synthesizing an equivalent {@code @SpringBootTest}
+     * from the attributes declared on {@code @CacheAwareSpringBootTest}.
+     *
+     * @param testClass the test class being bootstrapped
+     * @return a synthesized {@link SpringBootTest} instance, or {@code null} if the annotation is not present
+     */
     @Override
     protected SpringBootTest getAnnotation(Class<?> testClass) {
         CacheAwareSpringBootTest cacheAware = getWrappingAnnotation(testClass);

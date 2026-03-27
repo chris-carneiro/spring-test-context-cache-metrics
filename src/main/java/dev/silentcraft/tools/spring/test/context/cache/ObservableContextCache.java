@@ -13,12 +13,12 @@ import org.springframework.test.context.cache.DefaultContextCache;
 
 /**
  * A {@link ContextCache} implementation that wraps the default {@link DefaultContextCache}
- * and provides observability on context cache misses.
+ * and provides observability on context cache hits and misses.
  *
  * <p>This class is intended for use in test instrumentation and diagnostics,
  * especially when analyzing {@code ApplicationContext} reuse during test execution.
- * It enables external listeners to be notified whenever a context miss occurs —
- * i.e., when a requested {@code MergedContextConfiguration} does not exist in the cache.</p>
+ * It enables external listeners to be notified on every cache lookup — whether the context
+ * was found (hit) or must be built from scratch (miss).</p>
  *
  * <h2>Use Cases</h2>
  * <ul>
@@ -82,15 +82,15 @@ public final class ObservableContextCache implements ContextCache {
     }
 
     /**
-     * Registers a listener that will be notified when a context cache miss occurs.
+     * Registers a listener that will be notified on every cache lookup.
      * <p>
-     * All registered {@link ContextCacheMissesListener}s will receive callbacks
-     * whenever {@link #get(MergedContextConfiguration)} results in a miss (i.e., the context is not found).
+     * Registered {@link ContextCacheMissesListener}s receive {@link ContextCacheMissesListener#onCacheMiss}
+     * when a context must be built from scratch, and {@link ContextCacheMissesListener#onCacheHit}
+     * when an existing context is returned from the cache.
      * <p>
      * This method is thread-safe and allows registering listeners at runtime.
      *
      * @param listener the listener to register (must not be {@code null})
-     * @see ContextCacheMissesListener#onCacheMiss(MergedContextConfiguration)
      */
     public void registerListener(ContextCacheMissesListener listener) {
         listeners.add(listener);
@@ -106,6 +106,8 @@ public final class ObservableContextCache implements ContextCache {
         ApplicationContext applicationContext = delegate.get(contextKey);
         if (applicationContext == null) {
             listeners.forEach(listener -> listener.onCacheMiss(contextKey));
+        } else {
+            listeners.forEach(listener -> listener.onCacheHit(contextKey));
         }
 
         return applicationContext;

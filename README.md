@@ -1,90 +1,74 @@
 # CacheAwareSpringBootTest - Global Test Execution Analyzer
 
-[![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft/tools-test-context-cache.svg)](https://search.maven.org/artifact/dev.silentcraft/tools-test-context-cache)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft.tools/spring-test-context-cache-metrics.svg)](https://search.maven.org/artifact/dev.silentcraft.tools/spring-test-context-cache-metrics)
 
 ## Overview
 
-`CacheAwareSpringBootTest` is an annotation-based testing extension designed to improve the developer experience
-when working with Spring Boot integration tests by providing observability and metrics on Spring `ApplicationContext`
-cache behavior.
+`CacheAwareSpringBootTest` is an annotation-based testing extension that replaces `@SpringBootTest` to add
+observability on Spring `ApplicationContext` cache behavior during test execution.
 
-This project integrates seamlessly with the Spring Test lifecycle to detect and analyze context cache misses during test
-suite execution,
-allowing you to optimize test startup times and prevent unnecessary context reloading.
+It hooks into the Spring Test lifecycle and tracks every context load event across your test suite, classifying each as:
 
-The core component for reporting is the **Global Test Execution Analyzer** (`GlobalTestExecutionAnalyzer`), which
-automatically listens to your test suite execution and outputs insightful metrics about cache usage without any manual
-setup.
+- **BUILD** — the first `ApplicationContext` created in the entire build execution
+- **REBUILD** — a context that was discarded and rebuilt because a different test configuration prevented reuse
+- **REUSE** — a cache hit; an existing context was returned without rebuilding
+
+The core reporting component is the **Global Test Execution Analyzer** (`GlobalTestExecutionAnalyzer`), which runs
+automatically at the end of your test suite and logs a cache usage summary — no manual setup required.
 
 ---
 
 ## Important Usage Notes and Dependencies
 
 - **Logging:**
-  This library uses the [SLF4J API](https://www.slf4j.org/) for logging and internally bundles `logback-classic` as the
-  default logging implementation.
-  However, **you must explicitly specify the SLF4J logging implementation you want to use in your project** to avoid
-  conflicts and ensure compatibility.
-  This design leaves the choice of logging backend fully to the consumer without imposing `logback` at runtime.
-
+  This library uses the [SLF4J API](https://www.slf4j.org/) for logging. **You must provide an SLF4J-compatible
+  logging implementation in your project** (e.g. `logback-classic`) to see the output. The library does not
+  bundle one to avoid conflicts.
 
 - **Dependency Scope:**
-  All dependencies of this library are **meant for testing purposes only**.
-  Therefore, you **must declare this library and its dependencies with scope `test`** in your build tool (Maven/Gradle)
-  to avoid polluting your production classpath and to prevent conflicts with your application code.
-
+  This library is for testing only. Declare it with `scope test` in Maven or Gradle to avoid polluting your
+  production classpath.
 
 - **Spring Dependencies:**
-  Internally, this library depends on the following Spring modules:
-    - `spring-boot-autoconfigure`
-    - `spring-test`
-    - `spring-context`
-    - `spring-boot-test`
-
-  These dependencies are necessary to hook into Spring's test lifecycle and cache infrastructure.
-
+  The library depends on the following Spring modules (all marked `optional` to avoid transitive version conflicts):
+  - `spring-boot-autoconfigure`
+  - `spring-test`
+  - `spring-context`
+  - `spring-boot-test`
 
 - **Spring Boot Version Compatibility:**
-  This library is built and tested against **Spring Boot 3.5.3** and **does not guarantee compatibility with earlier
-  Spring Boot versions**.
-  Importantly, this dependency is **not transitively exposed** to avoid build conflicts in your projects.
-
+  Built and tested against **Spring Boot 3.5.10**. Compatibility with earlier versions is not guaranteed.
 
 - **JUnit Version Compatibility:**
-  The library depends on **JUnit 5** (`junit-jupiter`) and has only been tested with JUnit 5.
-  Support for earlier JUnit versions (JUnit 4 or older) will be considered for future releases but is not currently
-  provided.
-
-
-- **Junit Dependencies**
-- `junit-jupiter-api`
-- `junit-jupiter-params`
-- `junit-platform-commons`
-- `junit-platform-engine`
-- `junit-platform-launcher`
+  Requires **JUnit 5** (`junit-jupiter`). JUnit 4 is not supported.
+  JUnit dependencies used internally:
+  - `junit-jupiter-api`
+  - `junit-jupiter-params`
+  - `junit-platform-commons`
+  - `junit-platform-engine`
+  - `junit-platform-launcher`
 
 ---
 
 ## Usage
 
-Add the dependency to your `pom.xml` or `build.gradle` with `test` scope:
+Add the dependency to your `pom.xml` with `test` scope:
 
 ```xml
-
 <dependency>
     <groupId>dev.silentcraft.tools</groupId>
     <artifactId>spring-test-context-cache-metrics</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
     <scope>test</scope>
 </dependency>
 ```
 
-Annotate your Spring Boot test classes with `@CacheAwareSpringBootTest` instead of `@SpringBootTest`:
+Replace `@SpringBootTest` with `@CacheAwareSpringBootTest` on your integration test classes:
 
 ```java
 @CacheAwareSpringBootTest(classes = MyApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MyServiceIntegrationTest {
-    // Your test cases
+    // your tests
 }
 ```
 
@@ -92,14 +76,14 @@ All attributes supported by `@SpringBootTest` are available, including `properti
 
 ```java
 @CacheAwareSpringBootTest(
-    classes = MyApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = "feature.flag=true",
-    args = "--spring.profiles.active=ci",
-    useMainMethod = SpringBootTest.UseMainMethod.ALWAYS
+        classes = MyApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "feature.flag=true",
+        args = "--spring.profiles.active=ci",
+        useMainMethod = SpringBootTest.UseMainMethod.ALWAYS
 )
 public class MyServiceIntegrationTest {
-    // Your test cases
+    // your tests
 }
 ```
 
@@ -108,95 +92,109 @@ The annotation is `@Inherited`, so annotating an abstract base class is supporte
 ```java
 @CacheAwareSpringBootTest
 @ActiveProfiles("integration")
-abstract class AbstractIntegrationTest {}
+abstract class AbstractIntegrationTest {
+}
 
 class MyServiceTest extends AbstractIntegrationTest {
     // inherits @CacheAwareSpringBootTest
 }
 ```
 
-No further configuration is needed. The `GlobalTestExecutionAnalyzer` will automatically run at the end of your test
-suite and log cache miss summaries.
+No further configuration is needed. `GlobalTestExecutionAnalyzer` will automatically run at the end of your test suite.
 
-## What it does
+---
 
-* Tracks every Spring ApplicationContext cache miss triggered during test execution
+## What it reports
 
-* Aggregates detailed metadata including test class, active Spring profiles, and configuration classes
+At the end of the test suite, the analyzer logs one of two outcomes:
 
-* Reports the number and distribution of cache misses across test classes
+**Perfect** — every test class reused the same `ApplicationContext`:
+```
+[OCC] Perfect! No cache misses detected, all your tests share the same configuration.
+```
 
-* Highlights the most frequent Spring profiles used during cache misses
-
-## Sample output
-
-When cache misses are detected:
-
+**Rebuild report** — at least one context rebuild was detected:
 ```
 [OCC] Cache Miss Analysis:
-[OCC] Total test classes with cache misses: 2
-[OCC] /!\ UserServiceIntegrationTest - 4 cache misses
-[OCC] /!\ OrderServiceIntegrationTest - 3 cache misses
-[OCC] Most common profiles: {test=6, integration=3}
+[OCC] Total cache misses detected: 2 - following the 5 most impactful test classes
+[OCC] /!\ UserServiceIntegrationTest - Could not reuse cached application context
+[OCC] UserServiceIntegrationTest - Active profiles [test, integration]
+[OCC] /!\ OrderServiceIntegrationTest - Could not reuse cached application context
+[OCC] OrderServiceIntegrationTest - Active profiles [test]
+[OCC] - Cached application context was based on this (class) & [configuration]
+       (AppConfigTest) - {profiles: [test]} - use it to configure test classes
+       that could not use cached context.
 ```
 
-When all contexts were reused:
+The last line identifies the test class that established the original `ApplicationContext` and its active profiles.
+Use it as a reference to align other test classes and eliminate unnecessary rebuilds.
 
-```
-[OCC] Perfect! No cache misses detected
-```
+---
+
+## On test isolation and context reuse
+
+Context reuse is a **consequence** of good test isolation — not a goal in itself.
+
+When each test class is fully self-contained (no static mutable state, no cross-test dependencies, consistent
+profile and configuration declarations), Spring can safely return a cached `ApplicationContext` to every class
+that shares the same configuration. The tool surfaces when that isn't happening so you can investigate whether
+it is intentional or a misconfiguration.
+
+**Sharing JVM state between tests masks real cache fragmentation.** If test classes mutate shared static state or
+depend on side effects from previous tests, contexts may appear to be reused when the underlying isolation is broken.
+Well-isolated tests that happen to share the same configuration will naturally reuse the same `ApplicationContext`.
+
+> **Note:** To benefit from context caching, all tests must run in the same JVM process. When using Maven Surefire,
+> ensure `forkCount` is not set to `always` or `pertest`, as forking prevents context reuse across test classes
+> and will significantly slow down your build.
+
+---
 
 ## Multi-module projects
 
-When all modules run in the same JVM (e.g. Maven Surefire with `forkCount=0`), the `GlobalTestExecutionAnalyzer`
-produces a **combined report across all modules** at the end of each module's test plan. This is by design: the
-registry is never auto-cleared between modules, so the final report reflects the full picture of cache inefficiencies
-across the entire build.
+When all modules run in the same JVM (e.g. Maven Surefire with `forkCount=0`), `GlobalTestExecutionAnalyzer`
+produces a **combined report across all modules** at the end of each module's test plan. The registry is never
+auto-cleared between modules, so the final report reflects the full picture of cache usage across the entire build.
 
-If you need per-module isolation, call `ContextCacheMetricsRegistry.clear()` explicitly at the start of each module
-via a custom `TestExecutionListener` registered before this one.
+If you need per-module isolation, call `ContextCacheMetricsRegistry.clear()` at the start of each module via
+a custom `TestExecutionListener` registered before this one.
+
+---
 
 ## Registry API and IDE re-runs
 
-`ContextCacheMetricsRegistry` exposes a public `clear()` method for callers that need explicit control over when
-the registry is reset:
+`ContextCacheMetricsRegistry` exposes a public `clear()` method for explicit control over when the registry resets:
 
 ```java
 ContextCacheMetricsRegistry.clear();
 ```
 
 **Known trade-off:** When running tests repeatedly in an IDE that reuses the JVM between runs (IntelliJ, VS Code),
-the registry accumulates data across runs. A second run will report misses from both the first and second run combined.
-Call `clear()` before the test suite starts if single-run isolation is required.
+the registry accumulates data across runs. A second run will include events from the first. Call `clear()` before
+the test suite starts if single-run isolation is required.
+
+---
 
 ## Design considerations
 
-* Early Bootstrap Integration: The context cache monitoring operates at the earliest test bootstrap phase, before the
-  Spring application context is fully initialized.
+- **Early bootstrap integration:** Context cache monitoring operates at the earliest test bootstrap phase, before
+  the Spring `ApplicationContext` is fully initialized.
 
-* Static Listener Registration: Cache miss listeners are registered statically to ensure reliability during this early
-  phase.
+- **Static listener registration:** Cache event listeners are registered statically to ensure they are in place
+  before any context is loaded.
 
-* Extensibility: While custom listener registration is possible, it's currently limited by Spring Test lifecycle
-  constraints.
+- **Extensibility:** Custom listener registration is possible via `ObservableContextCache#registerListener`, but
+  is currently constrained by Spring Test lifecycle timing (see `ContextCacheMissesListener` Javadoc).
 
-* Future improvements:
-    * Possibility to export metrics to CI dashboards, introduce thresholds, and offer optimization
-      suggestions.
-    * Warn when forkMode maven/surefire settings clashes with caching
+- **Future improvements:**
+  - Export metrics to CI dashboards and introduce configurable rebuild thresholds
+  - Warn when Maven Surefire `forkMode` settings conflict with context caching
 
-```shell
-> To benefit from the caching mechanism, all tests must run within the same process or test suite.
-> This can be achieved by executing all tests as a group within an IDE. Similarly, when executing tests with a build
- > framework such as Ant, Maven, or Gradle, it is important to make sure that the build framework does not fork
- > between tests. For example, if the forkMode for the Maven Surefire plug-in is set to always or pertest, the
- > TestContext framework cannot cache application contexts between test classes, and the build process runs
- > significantly more slowly as a result.
- ```
+---
 
 ## Contribution & License
 
-Feel free to contribute via pull requests or open issues
+Contributions are welcome via pull requests or issues
 on [GitHub](https://github.com/chris-carneiro/spring-test-context-cache-metrics/issues).
 
 This project is licensed under the Apache License Version 2.0 — see the [LICENSE](LICENSE) file for details.

@@ -27,5 +27,20 @@ import org.springframework.test.context.MergedContextConfiguration;
  * @see CacheAwareSpringBootTestBootstrapper
  */
 public interface ContextCacheMissesListener {
+
+    /**
+     * Invoked when a requested {@code ApplicationContext} was not found in the cache
+     * and must be built from scratch.
+     *
+     * @param key the merged configuration that triggered the cache miss
+     */
     void onCacheMiss(MergedContextConfiguration key);
+
+    /**
+     * Invoked when a requested {@code ApplicationContext} was found in the cache
+     * and will be reused without rebuilding.
+     *
+     * @param key the merged configuration that produced the cache hit
+     */
+    void onCacheHit(MergedContextConfiguration key);
 }

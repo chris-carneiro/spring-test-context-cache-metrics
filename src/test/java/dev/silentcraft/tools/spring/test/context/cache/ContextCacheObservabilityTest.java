@@ -2,6 +2,7 @@ package dev.silentcraft.tools.spring.test.context.cache;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,7 @@ class ContextCacheObservabilityTest {
     void missIsRecordedWhenContextIsLoaded() {
         run(AlphaTest.class);
 
-        Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+        Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
 
         Assertions.assertTrue(
                 snapshot.keySet().stream().anyMatch(k -> k.testClass() == AlphaTest.class),
@@ -47,16 +48,19 @@ class ContextCacheObservabilityTest {
     void twoDistinctConfigsEachRecordAMiss() {
         run(BetaZooTest.class, GammaBeachTest.class);
 
-        Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+        Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
 
         Assertions.assertTrue(
-                snapshot.keySet().stream().anyMatch(k -> k.testClass() == BetaZooTest.class),
+                cacheMissRecordedForTest(BetaZooTest.class, snapshot),
                 "Cache miss must be recorded for BetaZooTest (profile: zoo)"
         );
-        Assertions.assertTrue(
-                snapshot.keySet().stream().anyMatch(k -> k.testClass() == GammaBeachTest.class),
+        Assertions.assertTrue(cacheMissRecordedForTest(GammaBeachTest.class, snapshot),
                 "Cache miss must be recorded for GammaBeachTest (profile: beach)"
         );
+    }
+
+    private static boolean cacheMissRecordedForTest(Class<?> testClass, Map<TestContextKey, TestContextHistory> snapshot) {
+        return snapshot.keySet().stream().anyMatch(k -> k.testClass() == testClass);
     }
 
     @Test
@@ -67,12 +71,19 @@ class ContextCacheObservabilityTest {
         run(DeltaTest.class);
         run(EpsilonTest.class);
 
-        Map<CacheMissInfoKey, CacheMissInfo> snapshot = ContextCacheMetricsRegistry.snapshot();
+        Map<TestContextKey, TestContextHistory> snapshot = ContextCacheMetricsRegistry.snapshot();
 
-        Assertions.assertFalse(
-                snapshot.containsKey(new CacheMissInfoKey(EpsilonTest.class)),
+        Assertions.assertTrue(cacheWasUsedForTest(EpsilonTest.class, snapshot),
                 "EpsilonTest must not appear in the registry — it reused DeltaTest's cached context"
         );
+    }
+
+    private static boolean cacheWasUsedForTest(Class<?> testClass, Map<TestContextKey, TestContextHistory> snapshot) {
+        return snapshot.get(new TestContextKey(testClass))
+                .events().stream()
+                .flatMap(events -> {
+                    return Stream.of(events.type());
+                }).allMatch(eventType -> eventType == EventType.REUSE);
     }
 
     // --- helper ---
@@ -94,8 +105,13 @@ class ContextCacheObservabilityTest {
     @CacheAwareSpringBootTest
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     static class AlphaTest {
-        @Autowired ApplicationContext ctx;
-        @Test void runs() { Assertions.assertNotNull(ctx); }
+        @Autowired
+        ApplicationContext ctx;
+
+        @Test
+        void runs() {
+            Assertions.assertNotNull(ctx);
+        }
     }
 
     /**
@@ -105,8 +121,13 @@ class ContextCacheObservabilityTest {
     @CacheAwareSpringBootTest
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     static class BetaZooTest {
-        @Autowired ApplicationContext ctx;
-        @Test void runs() { Assertions.assertNotNull(ctx); }
+        @Autowired
+        ApplicationContext ctx;
+
+        @Test
+        void runs() {
+            Assertions.assertNotNull(ctx);
+        }
     }
 
     /**
@@ -116,8 +137,13 @@ class ContextCacheObservabilityTest {
     @CacheAwareSpringBootTest
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     static class GammaBeachTest {
-        @Autowired ApplicationContext ctx;
-        @Test void runs() { Assertions.assertNotNull(ctx); }
+        @Autowired
+        ApplicationContext ctx;
+
+        @Test
+        void runs() {
+            Assertions.assertNotNull(ctx);
+        }
     }
 
     /**
@@ -127,8 +153,13 @@ class ContextCacheObservabilityTest {
     @CacheAwareSpringBootTest
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     static class DeltaTest {
-        @Autowired ApplicationContext ctx;
-        @Test void runs() { Assertions.assertNotNull(ctx); }
+        @Autowired
+        ApplicationContext ctx;
+
+        @Test
+        void runs() {
+            Assertions.assertNotNull(ctx);
+        }
     }
 
     /**
@@ -137,7 +168,12 @@ class ContextCacheObservabilityTest {
      */
     @CacheAwareSpringBootTest
     static class EpsilonTest {
-        @Autowired ApplicationContext ctx;
-        @Test void runs() { Assertions.assertNotNull(ctx); }
+        @Autowired
+        ApplicationContext ctx;
+
+        @Test
+        void runs() {
+            Assertions.assertNotNull(ctx);
+        }
     }
 }
