@@ -1,6 +1,6 @@
 # CacheAwareSpringBootTest - Global Test Execution Analyzer
 
-[![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft/tools-test-context-cache.svg)](https://search.maven.org/artifact/dev.silentcraft/tools-test-context-cache)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft/spring-test-context-cache-metrics.svg)](https://search.maven.org/artifact/dev.silentcraft/spring-test-context-cache-metrics)
 
 ## Overview
 
@@ -82,6 +82,7 @@ Add the dependency to your `pom.xml` or `build.gradle` with `test` scope:
 Annotate your Spring Boot test classes with `@CacheAwareSpringBootTest` instead of `@SpringBootTest`:
 
 ```java
+
 @CacheAwareSpringBootTest(classes = MyApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MyServiceIntegrationTest {
     // Your test cases
@@ -91,12 +92,13 @@ public class MyServiceIntegrationTest {
 All attributes supported by `@SpringBootTest` are available, including `properties`, `args`, and `useMainMethod`:
 
 ```java
+
 @CacheAwareSpringBootTest(
-    classes = MyApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = "feature.flag=true",
-    args = "--spring.profiles.active=ci",
-    useMainMethod = SpringBootTest.UseMainMethod.ALWAYS
+        classes = MyApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "feature.flag=true",
+        args = "--spring.profiles.active=ci",
+        useMainMethod = SpringBootTest.UseMainMethod.ALWAYS
 )
 public class MyServiceIntegrationTest {
     // Your test cases
@@ -106,9 +108,11 @@ public class MyServiceIntegrationTest {
 The annotation is `@Inherited`, so annotating an abstract base class is supported:
 
 ```java
+
 @CacheAwareSpringBootTest
 @ActiveProfiles("integration")
-abstract class AbstractIntegrationTest {}
+abstract class AbstractIntegrationTest {
+}
 
 class MyServiceTest extends AbstractIntegrationTest {
     // inherits @CacheAwareSpringBootTest
