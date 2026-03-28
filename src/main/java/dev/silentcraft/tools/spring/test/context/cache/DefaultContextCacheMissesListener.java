@@ -35,7 +35,12 @@ public class DefaultContextCacheMissesListener implements ContextCacheMissesList
     private static final ContextCacheMetricsRegistry contextCacheMetricsRegistry = new ContextCacheMetricsRegistry();
 
     @Override
-    public void onCacheMiss(MergedContextConfiguration config) {
-        contextCacheMetricsRegistry.recordEntry(config);
+    public void onCacheMiss(MergedContextConfiguration miss) {
+        contextCacheMetricsRegistry.recordEntry(miss);
+    }
+
+    @Override
+    public void onCacheHit(MergedContextConfiguration hit) {
+//        contextCacheMetricsRegistry.recordEntry(hit);
     }
 }

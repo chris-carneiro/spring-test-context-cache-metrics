@@ -106,6 +106,8 @@ public final class ObservableContextCache implements ContextCache {
         ApplicationContext applicationContext = delegate.get(contextKey);
         if (applicationContext == null) {
             listeners.forEach(listener -> listener.onCacheMiss(contextKey));
+        } else {
+            listeners.forEach(listener -> listener.onCacheHit(contextKey));
         }
 
         return applicationContext;

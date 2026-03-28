@@ -28,4 +28,6 @@ import org.springframework.test.context.MergedContextConfiguration;
  */
 public interface ContextCacheMissesListener {
     void onCacheMiss(MergedContextConfiguration key);
+
+    void onCacheHit(MergedContextConfiguration key);
 }
