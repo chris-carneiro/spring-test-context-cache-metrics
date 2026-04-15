@@ -58,7 +58,7 @@ Add the dependency to your `pom.xml` with `test` scope:
 <dependency>
     <groupId>dev.silentcraft.tools</groupId>
     <artifactId>spring-test-context-cache-metrics</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.0-alpha</version>
     <scope>test</scope>
 </dependency>
 ```
