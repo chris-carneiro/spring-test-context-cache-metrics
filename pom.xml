@@ -10,7 +10,7 @@
     </parent>
     <groupId>dev.silentcraft.tools</groupId>
     <artifactId>spring-test-context-cache-metrics</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0-alpha</version>
 
     <name>spring-test-context-cache-metrics</name>
     <description>Tracks Spring ContextCache misses during test execution to help optimize test suite performance.

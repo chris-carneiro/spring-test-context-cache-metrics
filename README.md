@@ -58,7 +58,7 @@ Add the dependency to your `pom.xml` with `test` scope:
 <dependency>
     <groupId>dev.silentcraft.tools</groupId>
     <artifactId>spring-test-context-cache-metrics</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.0-alpha</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -66,6 +66,7 @@ Add the dependency to your `pom.xml` with `test` scope:
 Replace `@SpringBootTest` with `@CacheAwareSpringBootTest` on your integration test classes:
 
 ```java
+
 @CacheAwareSpringBootTest(classes = MyApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MyServiceIntegrationTest {
     // your tests
@@ -75,6 +76,7 @@ public class MyServiceIntegrationTest {
 All attributes supported by `@SpringBootTest` are available, including `properties`, `args`, and `useMainMethod`:
 
 ```java
+
 @CacheAwareSpringBootTest(
         classes = MyApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -90,6 +92,7 @@ public class MyServiceIntegrationTest {
 The annotation is `@Inherited`, so annotating an abstract base class is supported:
 
 ```java
+
 @CacheAwareSpringBootTest
 @ActiveProfiles("integration")
 abstract class AbstractIntegrationTest {
