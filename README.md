@@ -1,6 +1,7 @@
 # CacheAwareSpringBootTest - Global Test Execution Analyzer
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft.tools/spring-test-context-cache-metrics.svg)](https://search.maven.org/artifact/dev.silentcraft.tools/spring-test-context-cache-metrics)
+[![javadoc](https://javadoc.io/badge2/dev.silentcraft.tools/spring-test-context-cache-metrics/javadoc.svg)](https://javadoc.io/doc/dev.silentcraft.tools/spring-test-context-cache-metrics)
 
 ## Overview
 
