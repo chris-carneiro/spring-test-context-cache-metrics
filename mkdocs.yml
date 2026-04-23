@@ -1,0 +1,59 @@
+site_name: CacheAwareSpringBootTest
+site_url: https://occ.silentcraft.dev
+theme:
+  name: material
+  features:
+    - content.tabs.link
+    - toc.integrate
+    - content.code.copy
+
+  palette:
+    # Dark Mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Dark mode
+      primary: teal
+      accent: amber
+
+    # Light Mode
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Light mode
+      primary: blue
+      accent: deep orange
+
+  icon:
+    repo: fontawesome/brands/github
+
+# Repository
+repo_url: https://github.com/chris-carneiro/spring-test-context-cache-metrics
+
+nav:
+  - Getting started: index.md
+  - Understanding Rebuilds: rebuilds.md
+  - Javadoc: javadoc.md
+  - Release Notes: releases.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search:
+  
+extra:
+  social:
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/chriscarneiro
+
+copyright: Copyright &copy; 2026 Chris Carneiro

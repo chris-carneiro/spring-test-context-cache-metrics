@@ -35,4 +35,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
-session.md
+### Mkdocs ###
+.venv/
+site/
+.cache
