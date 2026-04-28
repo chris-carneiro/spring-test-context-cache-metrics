@@ -2,6 +2,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.silentcraft.tools/spring-test-context-cache-metrics.svg)](https://search.maven.org/artifact/dev.silentcraft.tools/spring-test-context-cache-metrics)
 [![javadoc](https://javadoc.io/badge2/dev.silentcraft.tools/spring-test-context-cache-metrics/javadoc.svg)](https://javadoc.io/doc/dev.silentcraft.tools/spring-test-context-cache-metrics)
+[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/chris-carneiro/4fd1853ee9f26a605eb1f89ee3b07192/raw/spring-test-context-cache-metrics-coverage.json)](https://gist.github.com/chris-carneiro/4fd1853ee9f26a605eb1f89ee3b07192)
 
 ## Overview
 
