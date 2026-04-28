@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -33,6 +35,33 @@ jobs:
 
       - name: Build and test
         run: ./mvnw $MAVEN_ARGS verify
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        if: success() || failure()
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+
+      - name: Publish coverage report on PR
+        id: jacoco
+        uses: madrapps/jacoco-report@7c362aca34caf958e7b1c03464bd8781db9f8da7 # v1.7.1
+        if: github.event_name == 'pull_request'
+        with:
+          paths: target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 80
+          min-coverage-changed-files: 90
+
+      - name: Update coverage badge
+        uses: schneegans/dynamic-badges-action@0e50b8bad39e7e1afd3e4e9c2b7dd145fad07501 # v1.8.0
+        if: github.event_name == 'pull_request'
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: 4fd1853ee9f26a605eb1f89ee3b07192
+          filename: spring-test-context-cache-metrics-coverage.json
+          label: coverage
+          message: ${{ steps.jacoco.outputs.coverage-overall }}%
+          color: green
 
   javadoc:
     name: Javadoc
