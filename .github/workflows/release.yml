@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions: {}
+
+env:
+  MAVEN_ARGS: -B -V -ntp -e -Djansi.passthrough=true -Dstyle.color=always
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: maven
+
+      - name: Build and deploy
+        run: ./mvnw $MAVEN_ARGS -DskipTests -Prelease deploy
+
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_PRIVATE_KEY }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+          JRELEASER_MAVENCENTRAL_TOKEN: ${{ secrets.JRELEASER_MAVENCENTRAL_TOKEN }}

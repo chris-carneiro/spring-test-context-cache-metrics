@@ -43,8 +43,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
-        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-        <central-publishing-maven-plugin.version>0.7.0</central-publishing-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -140,6 +138,9 @@
     <profiles>
         <profile>
             <id>release</id>
+            <properties>
+                <altDeploymentRepository>local::file:./target/staging-deploy</altDeploymentRepository>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -167,27 +168,38 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jreleaser-maven-plugin</artifactId>
+                        <version>1.23.0</version>
                         <executions>
                             <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
+                                <phase>deploy</phase>
                                 <goals>
-                                    <goal>sign</goal>
+                                    <goal>deploy</goal>
                                 </goals>
+                                <configuration>
+                                    <jreleaser>
+                                        <signing>
+                                            <active>ALWAYS</active>
+                                            <pgp>
+                                                <armored>true</armored>
+                                            </pgp>
+                                        </signing>
+                                        <deploy>
+                                            <maven>
+                                                <mavenCentral>
+                                                    <sonatype>
+                                                        <active>RELEASE</active>
+                                                        <url>https://central.sonatype.com/api/v1/publisher</url>
+                                                        <stagingRepositories>target/staging-deploy</stagingRepositories>
+                                                    </sonatype>
+                                                </mavenCentral>
+                                            </maven>
+                                        </deploy>
+                                    </jreleaser>
+                                </configuration>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>${central-publishing-maven-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <publishingServerId>central</publishingServerId>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
