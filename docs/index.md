@@ -121,3 +121,24 @@ See [**Understanding Rebuilds**](rebuilds.md) for a full cause list with DO/DON'
 - Spring Boot **3.5.x**
 - JUnit **5** (`junit-jupiter`)
 - Java **17+**
+
+!!! note "JVM forking and report scope"
+    `@CacheAwareSpringBootTest` tracks context cache events in a single static registry per JVM process.
+    When all tests run in the same JVM — the default Surefire configuration — the report covers the
+    entire test suite.
+
+    If you intentionally configure Surefire to fork a new JVM per test class (`reuseForks=false`),
+    each process produces its own independent report. This is a valid choice — just be aware that
+    cross-class cache analysis is scoped to each fork, not the full suite.
+
+    If a single global report is what you need, you still have the option to enforce fork reuse:
+    ```xml
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+            <forkCount>1</forkCount>
+            <reuseForks>true</reuseForks>
+        </configuration>
+    </plugin>
+    ```
