@@ -33,11 +33,16 @@ repo_url: https://github.com/chris-carneiro/spring-test-context-cache-metrics
 nav:
   - Getting started: index.md
   - Understanding Rebuilds: rebuilds.md
+  - Feedback: feedback.md
   - Javadoc: javadoc.md
   - Release Notes: releases.md
 
 markdown_extensions:
+  - attr_list
   - admonition
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
@@ -56,4 +61,6 @@ extra:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/chriscarneiro
 
-copyright: Copyright &copy; 2026 Chris Carneiro
+copyright: >-
+  Copyright &copy; 2026 Chris Carneiro &nbsp;|&nbsp;
+  <a href="https://github.com/chris-carneiro/spring-test-context-cache-metrics/issues" target="_blank">Share feedback</a>
